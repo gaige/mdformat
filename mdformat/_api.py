@@ -3,7 +3,7 @@ from typing import Any, Iterable, Mapping, Union
 
 from mdformat._util import EMPTY_MAP, build_mdit
 from mdformat.renderer import MDRenderer
-
+from markdown_it.utils import AttrDict
 
 def text(
     md: str,
@@ -19,8 +19,27 @@ def text(
         extensions=extensions,
         codeformatters=codeformatters,
     )
-    return mdit.render(md)
+    env = AttrDict()
+    ast = mdit.parse(md, env)
+    correct_links(ast)
 
+    return mdit.renderer.render(ast, mdit.options, env)
+
+
+def correct_links(token_stream):
+    for t in token_stream:
+        if t.type == 'link_open':
+            print(f"link {t}")
+            new_attrs = []
+            for a in t.attrs:
+                if a[0] == 'href':
+                    new_url = a[1].replace('%7Bfilename%7D','{filename}')
+                    new_attrs += [['href',new_url]]
+                else:
+                    new_attrs += [a]
+            t.attrs= new_attrs
+        if t.children:
+            correct_links(t.children)
 
 def file(
     f: Union[str, Path],
