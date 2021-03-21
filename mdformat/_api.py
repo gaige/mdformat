@@ -29,7 +29,7 @@ def text(
 def correct_links(token_stream):
     for t in token_stream:
         if t.type == 'link_open':
-            print(f"link {t}")
+#            print(f"link {t}")
             new_attrs = []
             for a in t.attrs:
                 if a[0] == 'href':
