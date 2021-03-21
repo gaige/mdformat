@@ -33,7 +33,9 @@ def correct_links(token_stream):
             new_attrs = []
             for a in t.attrs:
                 if a[0] == 'href':
-                    new_url = a[1].replace('%7Bfilename%7D','{filename}')
+                    new_url = a[1]
+                    for key in ('author','category','index','tag','filename','static','attach'):
+                        new_url = new_url.replace("7B"+key+"%7D",'{'+key+'}')
                     new_attrs += [['href',new_url]]
                 else:
                     new_attrs += [a]
