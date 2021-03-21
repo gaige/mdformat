@@ -26,20 +26,26 @@ def text(
     return mdit.renderer.render(ast, mdit.options, env)
 
 
+def replace_pelican_placeholdlers(uri_key, attr_list):
+    new_attrs = []
+    for a in attr_list:
+        if a[0] == uri_key:
+            new_url = a[1]
+            for placeholder in ('author', 'category', 'index', 'tag', 'filename', 'static', 'attach'):
+                new_url = new_url.replace("%7B" + placeholder + "%7D", '{' + placeholder + '}')
+            new_attrs += [[uri_key, new_url]]
+        else:
+            new_attrs += [a]
+    return new_attrs
+
 def correct_links(token_stream):
     for t in token_stream:
-        if t.type == 'link_open':
+        if t.type == 'link_open' or t.type == 'image_open':
 #            print(f"link {t}")
-            new_attrs = []
-            for a in t.attrs:
-                if a[0] == 'href':
-                    new_url = a[1]
-                    for key in ('author','category','index','tag','filename','static','attach'):
-                        new_url = new_url.replace("%7B"+key+"%7D",'{'+key+'}')
-                    new_attrs += [['href',new_url]]
-                else:
-                    new_attrs += [a]
-            t.attrs= new_attrs
+            t.attrs= replace_pelican_placeholdlers('href', t.attrs)
+        elif t.type == 'image':
+            t.attrs= replace_pelican_placeholdlers('src', t.attrs)
+
         if t.children:
             correct_links(t.children)
 
